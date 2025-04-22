@@ -59,6 +59,11 @@ This plugin enables you to update your Android app completely without the Google
 
     ionic cordova plugin add cordova-plugin-apkupdater
 
+> **注意**: 如果遇到TypeScript相关的错误，请先安装TypeScript:
+> ```bash
+> npm install -g typescript
+> ```
+
 ### Capacitor
 
     npm install cordova-plugin-apkupdater
