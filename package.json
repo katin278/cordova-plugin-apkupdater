@@ -1,0 +1,39 @@
+{
+  "name": "cordova-plugin-apkupdater",
+  "version": "5.0.1",
+  "description": "This plugin allows your Android app to download and install compressed updates without the Google Play Store.",
+  "cordova": {
+    "id": "cordova-plugin-apkupdater",
+    "platforms": [
+      "android"
+    ]
+  },
+  "main": "./src/ionic/index.js",
+  "types": "./src/ionic/index.d.ts",
+  "scripts": {
+    "build": "tsc -p src/ionic",
+    "prepublish": "npm run build"
+  },
+  "keywords": [
+    "apk",
+    "updater",
+    "downloader",
+    "installer",
+    "play-store",
+    "ecosystem:cordova",
+    "cordova-android",
+    "cordova",
+    "capacitor",
+    "ionic"
+  ],
+  "author": "Michael Jedich",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kolbasa/cordova-plugin-apkupdater.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kolbasa/cordova-plugin-apkupdater/issues"
+  },
+  "homepage": "https://github.com/kolbasa/cordova-plugin-apkupdater"
+}
