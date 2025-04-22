@@ -8,6 +8,11 @@ import android.content.pm.PackageInstaller;
 import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
+import android.os.PowerManager;
+import android.app.admin.DeviceAdminReceiver;
+import android.Manifest;
+
 
 import androidx.core.content.FileProvider;
 
@@ -23,6 +28,8 @@ import java.io.OutputStream;
 import de.kolbasa.apkupdater.exceptions.InstallationFailedException;
 import de.kolbasa.apkupdater.exceptions.InvalidPackageException;
 import de.kolbasa.apkupdater.exceptions.RootException;
+
+import android.content.ComponentName;
 
 public class ApkInstaller {
 
@@ -130,6 +137,121 @@ public class ApkInstaller {
         return mDPM.isDeviceOwnerApp(context.getPackageName());
     }
 
+    /**
+     * 使用设备管理员权限重启设备
+     * @param context 上下文
+     * @throws SecurityException 如果应用不是设备管理员或没有重启权限
+     */
+    public static void rebootDevice(Context context) throws SecurityException {
+        DevicePolicyManager mDPM = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        ComponentName admin = new ComponentName(context, DAReceiver.class);
+        
+        if (!mDPM.isDeviceOwnerApp(context.getPackageName())) {
+            throw new SecurityException("应用程序不是设备管理员");
+        }
+
+        try {
+            // 首先尝试使用 adb shell 命令重启
+            try {
+                Process process = Runtime.getRuntime().exec("am broadcast -a android.intent.action.REBOOT");
+                process.waitFor();
+                
+                // 如果广播命令执行成功但设备没有重启，尝试直接重启命令
+                process = Runtime.getRuntime().exec("reboot");
+                process.waitFor();
+                
+                // 如果还是没有重启，尝试使用 su 命令
+                if (isDeviceRooted(context)) {
+                    process = Runtime.getRuntime().exec(new String[]{"su", "-c", "reboot"});
+                    process.waitFor();
+                }
+                
+                // 读取命令执行的输出和错误信息
+                BufferedReader reader = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                StringBuilder error = new StringBuilder();
+                String line;
+                while ((line = reader.readLine()) != null) {
+                    error.append(line).append("\n");
+                }
+                
+                if (error.length() > 0) {
+                    logError("shell命令重启", new Exception(error.toString()));
+                }
+                
+                // 给系统一些时间来处理重启请求
+                Thread.sleep(1000);
+                
+            } catch (Exception e) {
+                logError("shell命令重启", e);
+                
+                // 如果 shell 命令失败，尝试使用系统 API
+                try {
+                    PowerManager pm = (PowerManager) context.getSystemService(Context.POWER_SERVICE);
+                    pm.reboot(null);
+                    Thread.sleep(1000);
+                } catch (Exception ex) {
+                    logError("PowerManager重启", ex);
+                }
+            }
+
+        } catch (Exception e) {
+            throw new SecurityException("重启失败: " + e.getMessage());
+        }
+    }
+
+    /**
+     * 请求设备管理员所需的所有权限
+     * @param context 上下文
+     * @return 是否成功设置所有权限
+     */
+    public static boolean requestPermissions(Context context) {
+        if (!isDeviceOwner(context)) {
+            return false;
+        }
+
+        DevicePolicyManager mDPM = (DevicePolicyManager) context.getSystemService(Context.DEVICE_POLICY_SERVICE);
+        ComponentName admin = new ComponentName(context, DAReceiver.class);
+
+        mDPM.setPermissionGrantState(
+            admin,
+            context.getPackageName(),
+            Manifest.permission.ACCESS_FINE_LOCATION,
+            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+        );
+        mDPM.setPermissionGrantState(
+            admin,
+            context.getPackageName(),
+            Manifest.permission.ACCESS_BACKGROUND_LOCATION,
+            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+        );
+        mDPM.setPermissionGrantState(
+            admin,
+            context.getPackageName(),
+            Manifest.permission.ACCESS_COARSE_LOCATION,
+            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+        );
+         mDPM.setPermissionGrantState(
+            admin,
+            context.getPackageName(),
+            Manifest.permission.MANAGE_EXTERNAL_STORAGE,
+            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+        );
+         mDPM.setPermissionGrantState(
+            admin,
+            context.getPackageName(),
+            Manifest.permission.WRITE_SECURE_SETTINGS,
+            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+        );
+        mDPM.setPermissionGrantState(
+            admin,
+            context.getPackageName(),
+            Manifest.permission.INSTALL_LOCATION_PROVIDER,
+            DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED
+        );
+        
+        return true;
+    }
+
     public static void ownerInstall(Context context, File update) throws IOException {
         if (!isDeviceOwner(context)) {
             throw new SecurityException("App is not device owner");
@@ -159,6 +281,11 @@ public class ApkInstaller {
 
         s.commit(pendingIntent.getIntentSender());
         s.close();
+    }
+
+    private static void logError(String method, Exception e) {
+        System.err.println("重启方法 " + method + " 失败: " + e.getMessage());
+        e.printStackTrace();
     }
 
 }

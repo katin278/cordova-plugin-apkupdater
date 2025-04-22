@@ -216,6 +216,24 @@ public class ApkUpdater extends CordovaPlugin {
         }
     }
 
+    private void requestPermissions(CallbackContext callbackContext) {
+        try {
+            ApkInstaller.requestPermissions(cordova.getContext());
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(StackExtractor.format(e));
+        }
+    }
+
+    private void rebootDevice(CallbackContext callbackContext) {
+        try {
+            ApkInstaller.rebootDevice(cordova.getContext());
+            callbackContext.success();
+        } catch (Exception e) {
+            callbackContext.error(StackExtractor.format(e));
+        }
+    }
+
     @Override
     public boolean execute(String action, JSONArray data, CallbackContext callbackContext) {
         init();
@@ -265,6 +283,12 @@ public class ApkUpdater extends CordovaPlugin {
                 break;
             case "ownerInstall":
                 cordova.getThreadPool().execute(() -> ownerInstall(callbackContext));
+                break;
+            case "requestPermissions":
+                cordova.getThreadPool().execute(() -> requestPermissions(callbackContext));
+                break;
+            case "rebootDevice":
+                cordova.getThreadPool().execute(() -> rebootDevice(callbackContext));
                 break;
             default:
                 return false;

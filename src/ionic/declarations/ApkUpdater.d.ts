@@ -4,41 +4,67 @@
 /// <reference path="interfaces/Update.d.ts" />
 /// <reference path="interfaces/Version.d.ts" />
 
-declare module 'cordova-plugin-apkupdater' {
+declare module "cordova-plugin-apkupdater" {
+  export class ApkUpdater {
+    static getInstalledVersion(
+      success?: Function,
+      failure?: Function
+    ): Promise<App>;
 
-    export class ApkUpdater {
+    static download(
+      updateUrl: string,
+      config?: Config,
+      success?: Function,
+      failure?: Function
+    ): Promise<Update>;
 
-        static getInstalledVersion(success?: Function, failure?: Function): Promise<App>;
+    static stop(success?: Function, failure?: Function): Promise<void>;
 
-        static download(updateUrl: string, config?: Config, success?: Function, failure?: Function): Promise<Update>;
+    static getDownloadedUpdate(
+      success?: Function,
+      failure?: Function
+    ): Promise<Update>;
 
-        static stop(success?: Function, failure?: Function): Promise<void>;
+    static reset(success?: Function, failure?: Function): Promise<void>;
 
-        static getDownloadedUpdate(success?: Function, failure?: Function): Promise<Update>;
+    static canRequestPackageInstalls(
+      success?: Function,
+      failure?: Function
+    ): Promise<boolean>;
 
-        static reset(success?: Function, failure?: Function): Promise<void>;
+    static openInstallSetting(
+      success?: Function,
+      failure?: Function
+    ): Promise<boolean>;
 
+    static install(success?: Function, failure?: Function): Promise<void>;
 
-        static canRequestPackageInstalls(success?: Function, failure?: Function): Promise<boolean>;
+    static isDeviceRooted(
+      success?: Function,
+      failure?: Function
+    ): Promise<boolean>;
 
-        static openInstallSetting(success?: Function, failure?: Function): Promise<boolean>;
+    static requestRootAccess(
+      success?: Function,
+      failure?: Function
+    ): Promise<boolean>;
 
-        static install(success?: Function, failure?: Function): Promise<void>;
+    static rootInstall(success?: Function, failure?: Function): Promise<void>;
 
+    static isDeviceOwner(
+      success?: Function,
+      failure?: Function
+    ): Promise<boolean>;
 
-        static isDeviceRooted(success?: Function, failure?: Function): Promise<boolean>;
+    static ownerInstall(success?: Function, failure?: Function): Promise<void>;
 
-        static requestRootAccess(success?: Function, failure?: Function): Promise<boolean>;
+    static requestPermissions(
+      success?: Function,
+      failure?: Function
+    ): Promise<boolean>;
 
-        static rootInstall(success?: Function, failure?: Function): Promise<void>;
+    static rebootDevice(success?: Function, failure?: Function): Promise<void>;
+  }
 
-
-        static isDeviceOwner(success?: Function, failure?: Function): Promise<boolean>;
-
-        static ownerInstall(success?: Function, failure?: Function): Promise<void>;
-
-    }
-
-    export default ApkUpdater;
-
+  export default ApkUpdater;
 }
